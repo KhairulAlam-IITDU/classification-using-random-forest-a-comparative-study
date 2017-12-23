@@ -8,10 +8,11 @@ public class DecisionTree {
 
 	public int attributeSubsetSize;
 	public int traineeDataSize;
-	public double weight;
+	public double weight = 1.0;
 	public Node root;
 	public double decisionClass = -1.0;
 
+	
 	public DecisionTree(DataNode dataNode, int featuresForSingleTree) {
 
 		this.attributeSubsetSize = featuresForSingleTree;
@@ -23,7 +24,6 @@ public class DecisionTree {
 	private Node makeTree(Node currentNode, DataNode dataNode,
 			int featureSubsetSize, int height) {
 
-
 		if (dataNode.labels.size() < this.traineeDataSize / 25 || height > 7) {
 			return new Node(majority(dataNode));
 		}
@@ -33,14 +33,9 @@ public class DecisionTree {
 
 			Node n = e1.maxGainedElement(dataNode.features, dataNode.labels, featureSubsetSize); //new
 
-
 			if(e1.zeroEntropy){
 
 				currentNode = new Node(dataNode.labels.get(0));
-
-				/*currentNode.attribute = dataNode.features;
-				currentNode.decision = dataNode.labels;
-				currentNode.nodeValue = dataNode.labels.get(0);*/
 
 				return currentNode;
 			}
@@ -77,12 +72,7 @@ public class DecisionTree {
 					}
 				}
 
-				if((leftNode.labels.isEmpty() || rightNode.labels.isEmpty()) && height == 0){
-					System.out.println("Ghapla");
-				}
-
 				currentNode.leftChild = makeTree(currentNode.leftChild, leftNode, featureSubsetSize, height+1);
-
 				currentNode.rightChild = makeTree(currentNode.rightChild, rightNode, featureSubsetSize, height+1);
 
 				return currentNode;
@@ -92,7 +82,6 @@ public class DecisionTree {
 
 
 	private double majority(DataNode dataNode) {
-
 
 		HashMap<Double, Integer> map = new HashMap<>();
 
@@ -119,6 +108,7 @@ public class DecisionTree {
 		return major;
 	}
 
+	
 	public double traverse(Node current, List<Double> testSet) {
 
 		if(current != null){

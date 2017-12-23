@@ -10,14 +10,17 @@ import java.util.TreeMap;
 public class Forest {
 
 	public ArrayList <DecisionTree> totalTrees = new ArrayList<>();
+	public ArrayList<Double> tpeValues = new ArrayList<>();
+	public double totalTpe = 0.0;
 
-	public void makeDecisionTree(DataNode rtnd) { //rtnd
+	
+	public void makeDecisionTree(DataNode rtnd, int op) {
 
+		int option = op;
+		
 		for(int i = 0; i < 100; i++) {
 
 			DataNode[] inOutData = bootstrap(rtnd);
-			
-			//System.out.println("\nTree " + (i+1) + " is building...");
 
 			int numberOfFeatures = inOutData[0].features.get(0).size();
 
@@ -29,10 +32,25 @@ public class Forest {
 
 			//decisionTree.inorderTraverse(decisionTree.root);
 			
-			decisionTree.weight = getOOBAccuracyRate(decisionTree, inOutData[1]);
+			if(option == 2){
+				decisionTree.weight = getOOBAccuracyRate(decisionTree, inOutData[1]);
+			}
+			else if(option == 1){
+				double tmp = getTreePredictionErrorRate(decisionTree, inOutData[1]);
+				tmp = Math.pow((1.0/tmp), 5);
+				totalTpe = totalTpe + tmp;
+				tpeValues.add(tmp);
+			}
 			
 			totalTrees.add(decisionTree);
 
+		}
+		
+		if(option == 1){
+			for(int i = 0; i < 100; i++) {
+				
+				totalTrees.get(i).weight = tpeValues.get(i)/totalTpe;
+			}
 		}
 	}
 	
@@ -54,6 +72,27 @@ public class Forest {
     	accuracyRate = (double)correctLabelCount/dataNode.labels.size();
 		
     	return accuracyRate;
+	}
+    
+    
+    private double getTreePredictionErrorRate(DecisionTree decisionTree,
+			DataNode inOutData) {
+
+    	double tpeRate = 0.0;
+    	double oobTotal = 0.0;
+    	
+    	for(int i = 0; i < inOutData.features.size(); i++){
+    		
+    		double key = decisionTree.traverse(decisionTree.root, inOutData.features.get(i));		
+
+    		if(key != inOutData.labels.get(i)){
+    			oobTotal = oobTotal + 1;		//Math.abs(key - inOutData.labels.get(i))		
+    		}
+    	}
+    	
+    	tpeRate = oobTotal/(double)inOutData.features.size();
+		
+    	return tpeRate;
 	}
 
 
@@ -80,7 +119,7 @@ public class Forest {
         for (int i = 0; i < data.features.size(); i++) {
         	
         	if(!trackInBag.contains(i)){
-        		//System.out.print(i + ", ");
+
         		bootstrappedData[1].features.add(data.features.get(i));
         		bootstrappedData[1].labels.add(data.labels.get(i));
         	}
@@ -99,29 +138,25 @@ public class Forest {
 		//loop start
 		for(DecisionTree dt : totalTrees) {
 
-			//System.out.println(dt.root.column1);
-			//count++;		
+			//count++;
 			//System.out.println("\nTree number: " + count);
 			
 			double lbl = dt.traverse(dt.root, testSet);
-					
+			
 			//start majority vote
 			if(counter.containsKey(lbl)) {
 
 				double value = counter.get(lbl);
 				counter.remove(lbl);
 				counter.put(lbl, value+(1.0*dt.weight));
-				//counter.put(lbl, value+1.0);
-				//System.out.println("Class: " + k + "\tCumulative Probability: " + counter.get(k));
+
 			}
 			else {
 
 				counter.put(lbl, (1.0*dt.weight));
-				//counter.put(lbl, 1.0);
-				//System.out.println("\tPredicted Class: " + k + "\nCumulative Probability: " + counter.get(k));
+
 			}			
 			//end majority vote
-			
 
 		}//loop end
 
@@ -142,7 +177,7 @@ public class Forest {
 		}
 		else {
 			
-			//System.out.println("\nOOPS! Blank Forest Probability! Check Code...");
+			System.out.println("\nOPSS! Blank Forest Probability!");
 		}
 
 		return finalDecision;

@@ -14,32 +14,43 @@ public class ReadFile {
 	public List<Double> labels = new ArrayList<>();
 	public DataNode dtnd = new DataNode();
 
-	public void fileReader() {
+	
+	public void fileReader(String filepath) {
 
 		InputStream is = null;
 		InputStreamReader isr = null;
 		BufferedReader br = null;
 
 		try {
-			is = new FileInputStream("glass.txt");
+			is = new FileInputStream(filepath);
 
 			isr = new InputStreamReader(is);
 
 			br = new BufferedReader(isr);
 
 			String s = new String();
+			
+			if(br.readLine() == null){
+				System.out.println("Empty file!");
+				System.exit(0);
+			}
 
 			while ((s = br.readLine()) != null) {
 
 				String[] separate = s.split(","); // ","
 
-				double decisionAttribute = Double.parseDouble(separate[0]); // [0], [separate.length-1]
+				if(separate.length <= 1){
+					System.out.println("Wrong Format! Data must be comma separated.");
+					System.exit(0);
+				}
+				
+				double decisionAttribute = Double.parseDouble(separate[0]);
 
 				this.labels.add(decisionAttribute);
 
 				List<Double> temp = new ArrayList<>();
 
-				for (int i = 1; i < separate.length; i++) {					// int i = 0; i < separate.length-1; i++
+				for (int i = 1; i < separate.length; i++) {
 
 					double matrixElement = Double.parseDouble(separate[i]);
 					temp.add(matrixElement);
@@ -70,6 +81,7 @@ public class ReadFile {
 
 	}
 
+	
 	public DataNode[] makeFolds(int folds) {
 
 		DataNode[] foldData = new DataNode[folds];
